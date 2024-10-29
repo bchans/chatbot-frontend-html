@@ -31,18 +31,22 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
+            white-space: pre-wrap;  /* Preserves formatting */
         }
         .user-message {
             background-color: #e3f2fd;
             margin-left: 20px;
+            border-left: 4px solid #2196F3;
         }
         .bot-message {
             background-color: #f5f5f5;
             margin-right: 20px;
+            border-left: 4px solid #4CAF50;
         }
         .system-message {
             color: #721c24;
             background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
         }
         .input-container {
             display: flex;
@@ -76,6 +80,20 @@
             color: #666;
             font-style: italic;
         }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        /* Add some animation for loading */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +110,11 @@
         const API_URL = 'https://bchans.pythonanywhere.com';
         const sendButton = document.getElementById('sendButton');
         const userInput = document.getElementById('userInput');
+
+        // Welcome message
+        window.onload = function() {
+            addToChat('Bot', 'Hello! I\'m Benedict\'s CV chatbot. I can tell you about his education, work experience, skills, and more. Feel free to ask me anything!');
+        };
 
         async function sendMessage() {
             const message = userInput.value.trim();
@@ -112,7 +135,8 @@
                 const response = await fetch(`${API_URL}/ask`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://bchans.github.io'
                     },
                     body: JSON.stringify({ message: message })
                 });
@@ -134,6 +158,26 @@
                 removeLoadingMessage(loadingId);
                 // Add error message
                 addToChat('System', 'Error connecting to the bot. Please try again.');
+
+                // Report error
+                try {
+                    await fetch(`${API_URL}/report-error`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Origin': 'https://bchans.github.io'
+                        },
+                        body: JSON.stringify({
+                            timestamp: new Date().toISOString(),
+                            userMessage: message,
+                            errorType: 'Connection Error',
+                            errorMessage: error.toString(),
+                            additionalInfo: 'Frontend error reporting'
+                        })
+                    });
+                } catch (reportError) {
+                    console.error('Error reporting failed:', reportError);
+                }
             } finally {
                 // Re-enable input and button
                 userInput.disabled = false;
