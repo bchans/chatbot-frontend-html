@@ -31,7 +31,7 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
-            white-space: pre-wrap;  /* Preserves formatting */
+            white-space: pre-wrap;
         }
         .user-message {
             background-color: #e3f2fd;
@@ -51,6 +51,7 @@
         .input-container {
             display: flex;
             gap: 10px;
+            margin-bottom: 10px;
         }
         input[type="text"] {
             flex: 1;
@@ -79,20 +80,75 @@
         .loading {
             color: #666;
             font-style: italic;
+            animation: pulse 1.5s infinite;
         }
         h2 {
             text-align: center;
             color: #333;
             margin-bottom: 20px;
         }
-        /* Add some animation for loading */
+        .error-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: block;
+            margin: 10px auto;
+        }
+        .error-button:hover {
+            background-color: #c82333;
+        }
+        .error-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .error-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #666;
+        }
+        .error-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 100px;
+            resize: vertical;
+        }
+        .success-message {
+            color: #28a745;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
         @keyframes pulse {
             0% { opacity: 0.6; }
             50% { opacity: 1; }
             100% { opacity: 0.6; }
-        }
-        .loading {
-            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
@@ -103,6 +159,22 @@
         <div class="input-container">
             <input type="text" id="userInput" placeholder="Type your message..." aria-label="Message input">
             <button onclick="sendMessage()" id="sendButton">Send</button>
+        </div>
+        <button onclick="openErrorModal()" class="error-button">Report an Issue</button>
+    </div>
+
+    <!-- Error Reporting Modal -->
+    <div id="errorModal" class="error-modal">
+        <div class="error-modal-content">
+            <span class="close-modal" onclick="closeErrorModal()">&times;</span>
+            <h3>Report an Issue</h3>
+            <div class="error-form">
+                <textarea id="errorDescription" placeholder="Please describe the issue you encountered..."></textarea>
+                <button onclick="submitErrorReport()" class="error-button">Submit Report</button>
+            </div>
+            <div id="successMessage" class="success-message">
+                Thank you for your report! We'll look into it.
+            </div>
         </div>
     </div>
 
@@ -120,15 +192,12 @@
             const message = userInput.value.trim();
             if (!message) return;
 
-            // Disable input and button while processing
             userInput.disabled = true;
             sendButton.disabled = true;
 
-            // Add user message to chat
             addToChat('You', message);
             userInput.value = '';
 
-            // Add loading message
             const loadingId = addLoadingMessage();
 
             try {
@@ -146,40 +215,13 @@
                 }
 
                 const data = await response.json();
-                
-                // Remove loading message
                 removeLoadingMessage(loadingId);
-                
-                // Add bot response
                 addToChat('Bot', data.response);
             } catch (error) {
                 console.error('Error:', error);
-                // Remove loading message
                 removeLoadingMessage(loadingId);
-                // Add error message
-                addToChat('System', 'Error connecting to the bot. Please try again.');
-
-                // Report error
-                try {
-                    await fetch(`${API_URL}/report-error`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Origin': 'https://bchans.github.io'
-                        },
-                        body: JSON.stringify({
-                            timestamp: new Date().toISOString(),
-                            userMessage: message,
-                            errorType: 'Connection Error',
-                            errorMessage: error.toString(),
-                            additionalInfo: 'Frontend error reporting'
-                        })
-                    });
-                } catch (reportError) {
-                    console.error('Error reporting failed:', reportError);
-                }
+                addToChat('System', 'Error connecting to the bot. Please try again or use the "Report an Issue" button below.');
             } finally {
-                // Re-enable input and button
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
@@ -211,6 +253,61 @@
             const loadingDiv = document.getElementById(loadingId);
             if (loadingDiv) {
                 loadingDiv.remove();
+            }
+        }
+
+        function openErrorModal() {
+            document.getElementById('errorModal').style.display = 'block';
+            document.getElementById('errorDescription').value = '';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        async function submitErrorReport() {
+            const errorDescription = document.getElementById('errorDescription').value;
+            if (!errorDescription.trim()) {
+                alert('Please provide a description of the issue.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/report-error`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://bchans.github.io'
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        userMessage: 'User-reported issue',
+                        errorType: 'User Report',
+                        errorMessage: errorDescription,
+                        additionalInfo: 'Submitted via error report form'
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorDescription').value = '';
+                    setTimeout(() => {
+                        closeErrorModal();
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to send error report');
+                }
+            } catch (error) {
+                console.error('Error sending report:', error);
+                alert('Failed to send error report. Please try again later.');
+            }
+        }
+
+        // Close modal if clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('errorModal')) {
+                closeErrorModal();
             }
         }
 
