@@ -88,18 +88,37 @@
             margin-bottom: 20px;
         }
         .error-button {
-            background-color: #dc3545;
-            color: white;
+            background-color: transparent;
+            color: #6c757d;
             padding: 8px 15px;
+            border: 1px solid #6c757d;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        .error-button:hover {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #721c24;
+        }
+        button#sendButton {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-            margin: 10px 0;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .error-button:hover {
-            background-color: #c82333;
+        button#sendButton:hover {
+            background: #0056b3;
         }
         .error-modal {
             display: none;
@@ -158,22 +177,22 @@
         <div id="chatHistory" class="chat-history"></div>
         <div class="input-container">
             <input type="text" id="userInput" placeholder="Type your message..." aria-label="Message input">
-            <button onclick="sendMessage()" id="sendButton">Send</button>
+            <button onclick="sendMessage()" id="sendButton">Send 📤</button>
         </div>
-        <button onclick="openErrorModal()" class="error-button">Report an Issue</button>
+        <button onclick="openErrorModal()" class="error-button">📝 Report Issue</button>
     </div>
 
     <!-- Error Reporting Modal -->
     <div id="errorModal" class="error-modal">
         <div class="error-modal-content">
             <span class="close-modal" onclick="closeErrorModal()">&times;</span>
-            <h3>Report an Issue</h3>
+            <h3>📝 Report an Issue</h3>
             <div class="error-form">
                 <textarea id="errorDescription" placeholder="Please describe the issue you encountered..."></textarea>
-                <button onclick="submitErrorReport()" class="error-button">Submit Report</button>
+                <button onclick="submitErrorReport()" class="error-button">📤 Submit Report</button>
             </div>
             <div id="successMessage" class="success-message">
-                Thank you for your report! We'll look into it.
+                ✅ Thank you for your report! We'll look into it.
             </div>
         </div>
     </div>
@@ -185,7 +204,7 @@
 
         // Welcome message
         window.onload = function() {
-            addToChat('Bot', 'Hello! I\'m Benedict\'s CV chatbot. I can tell you about his education, work experience, skills, and more. Feel free to ask me anything!');
+            addToChat('Bot', '👋 Hello! I\'m Benedict\'s CV chatbot. I can tell you about his education, work experience, skills, and more. Feel free to ask me anything!');
         };
 
         async function sendMessage() {
@@ -220,7 +239,7 @@
             } catch (error) {
                 console.error('Error:', error);
                 removeLoadingMessage(loadingId);
-                addToChat('System', 'Error connecting to the bot. Please try again or use the "Report an Issue" button below.');
+                addToChat('System', '⚠️ Error connecting to the bot. Please try again or use the "Report Issue" button below.');
             } finally {
                 userInput.disabled = false;
                 sendButton.disabled = false;
@@ -232,7 +251,11 @@
             const chatHistory = document.getElementById('chatHistory');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender.toLowerCase()}-message`;
-            messageDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            
+            // Add emoji based on sender
+            const emoji = sender === 'You' ? '👤' : sender === 'Bot' ? '🤖' : '⚠️';
+            
+            messageDiv.innerHTML = `<strong>${emoji} ${sender}:</strong> ${message}`;
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
@@ -243,7 +266,7 @@
             const loadingId = 'loading-' + Date.now();
             loadingDiv.id = loadingId;
             loadingDiv.className = 'message loading';
-            loadingDiv.textContent = 'Bot is typing...';
+            loadingDiv.textContent = '🤔 Bot is thinking...';
             chatHistory.appendChild(loadingDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
             return loadingId;
