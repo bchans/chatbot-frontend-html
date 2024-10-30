@@ -95,8 +95,8 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            display: block;
-            margin: 10px auto;
+            width: 100%;
+            margin: 10px 0;
         }
         .error-button:hover {
             background-color: #c82333;
@@ -267,50 +267,67 @@
         }
 
         async function submitErrorReport() {
-    const errorDescription = document.getElementById('errorDescription').value;
-    if (!errorDescription.trim()) {
-        alert('Please provide a description of the issue.');
-        return;
-    }
+            const errorDescription = document.getElementById('errorDescription').value;
+            if (!errorDescription.trim()) {
+                alert('Please provide a description of the issue.');
+                return;
+            }
 
-    // Get all chat messages
-    const chatHistory = document.getElementById('chatHistory');
-    const messages = chatHistory.getElementsByClassName('message');
-    const chatLog = Array.from(messages).map(msg => msg.textContent).join('\n');
+            // Get all chat messages
+            const chatHistory = document.getElementById('chatHistory');
+            const messages = chatHistory.getElementsByClassName('message');
+            const chatLog = Array.from(messages).map(msg => msg.textContent).join('\n');
 
-    try {
-        const response = await fetch(`${API_URL}/report-error`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Origin': 'https://bchans.github.io'
-            },
-            body: JSON.stringify({
-                timestamp: new Date().toISOString(),
-                userMessage: 'User-reported issue',
-                errorType: 'User Report',
-                errorMessage: errorDescription,
-                chatHistory: chatLog,
-                additionalInfo: 'Submitted via error report form'
-            })
+            try {
+                const response = await fetch(`${API_URL}/report-error`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://bchans.github.io'
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        userMessage: 'User-reported issue',
+                        errorType: 'User Report',
+                        errorMessage: errorDescription,
+                        chatHistory: chatLog,
+                        additionalInfo: 'Submitted via error report form'
+                    })
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('errorDescription').value = '';
+                    setTimeout(() => {
+                        closeErrorModal();
+                    }, 2000);
+                } else {
+                    throw new Error(`Failed to send error report: ${responseData.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error sending report:', error);
+                alert(`Failed to send error report: ${error.message}`);
+            }
+        }
+
+        // Close modal if clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('errorModal')) {
+                closeErrorModal();
+            }
+        }
+
+        // Add event listener for Enter key
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !userInput.disabled) {
+                sendMessage();
+            }
         });
 
-        console.log('Response status:', response.status);
-
-        const responseData = await response.json();
-        console.log('Response data:', responseData);
-
-        if (response.ok) {
-            document.getElementById('successMessage').style.display = 'block';
-            document.getElementById('errorDescription').value = '';
-            setTimeout(() => {
-                closeErrorModal();
-            }, 2000);
-        } else {
-            throw new Error(`Failed to send error report: ${responseData.message || 'Unknown error'}`);
-        }
-    } catch (error) {
-        console.error('Error sending report:', error);
-        alert(`Failed to send error report: ${error.message}`);
-    }
-}
+        // Focus input on page load
+        userInput.focus();
+    </script>
+</body>
+</html>
