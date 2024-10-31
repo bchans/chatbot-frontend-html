@@ -28,29 +28,30 @@
             background: #1a202c;
             border-radius: 5px;
         }
-        .suggested-questions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(44, 62, 80, 0.5);
-            border-radius: 8px;
-        }
-        .question-button {
-            background-color: #2c3e50;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid #4a5568;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        .question-button:hover {
-            background-color: #34495e;
-            transform: translateY(-1px);
-        }
+.suggested-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.question-button {
+    background-color: #2c3e50;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #4a5568;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin: 2px;  /* Add some margin between buttons */
+}
+
+.question-button:hover {
+    background-color: #34495e;
+    transform: translateY(-1px);
+    border-color: #60a5fa;  /* Highlight border on hover */
+}
         .message {
             display: flex;
             align-items: flex-start;
@@ -179,6 +180,16 @@
             border-radius: 4px;
             display: none;
         }
+        .connection-status {
+            background-color: #4a5568;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
         @keyframes pulse {
             0% { opacity: 0.6; }
             50% { opacity: 1; }
@@ -189,21 +200,12 @@
             font-style: italic;
             animation: pulse 1.5s infinite;
         }
-        .connection-status {
-            background-color: #276749;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <h2>Benedict's CV Assistant</h2>
-        <div class="connection-status">🟢 Connected to backend</div>
+        <div class="connection-status">🔄 Checking connection...</div>
         
         <div id="chatHistory" class="chat-history"></div>
         <div class="input-container">
@@ -233,9 +235,38 @@
         const sendButton = document.getElementById('sendButton');
         const userInput = document.getElementById('userInput');
 
-        window.onload = function() {
-            addToChat('Bot', 'Hi! I\'m Benedict\'s CV Assistant. I\'d be happy to tell you about his background in sustainability, legal expertise, or tech experience. What would you like to know?');
-            addSuggestedQuestions();
+        async function checkBackendConnection() {
+            const statusElement = document.querySelector('.connection-status');
+            
+            try {
+                const response = await fetch(`${API_URL}/`);
+                if (response.ok) {
+                    statusElement.innerHTML = '🟢 Connected to backend';
+                    statusElement.style.backgroundColor = '#276749';
+                    return true;
+                } else {
+                    statusElement.innerHTML = '🔴 Backend connection error';
+                    statusElement.style.backgroundColor = '#742a2a';
+                    return false;
+                }
+            } catch (error) {
+                statusElement.innerHTML = '🔴 Backend connection error';
+                statusElement.style.backgroundColor = '#742a2a';
+                return false;
+            }
+        }
+
+        window.onload = async function() {
+            // Check connection first
+            const isConnected = await checkBackendConnection();
+            setInterval(checkBackendConnection, 30000); // Check every 30 seconds
+            
+            if (isConnected) {
+                addToChat('Bot', 'Hi! I\'m Benedict\'s CV Assistant. I\'d be happy to tell you about his background in sustainability, legal expertise, or tech experience. What would you like to know?');
+                addSuggestedQuestions();
+            } else {
+                addToChat('System', 'Unable to connect to the backend. Please try again later.');
+            }
         };
 
         function addSuggestedQuestions() {
@@ -307,6 +338,9 @@
                 console.error('Error:', error);
                 removeLoadingMessage(loadingId);
                 addToChat('System', 'Error connecting to the bot. Please try again or use the "Report Issue" button below.');
+                
+                // Update connection status on error
+                checkBackendConnection();
             } finally {
                 userInput.disabled = false;
                 sendButton.disabled = false;
