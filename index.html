@@ -78,32 +78,33 @@
             color: #fed7d7;
             background-color: #742a2a;
         }
-.input-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    background: #2d3748;
-    padding: 10px;
-    border-radius: 8px;
-    /* Remove margin-bottom and adjust padding */
-    margin: 0;  /* Changed from margin-bottom: 10px */
-}
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin: 0;
+            background: #2d3748;
+            padding: 10px;
+            border-radius: 8px;
+        }
         input[type="text"] {
             flex: 1;
-            padding: 10px;
+            height: 40px;
+            padding: 0 10px;
             border: 1px solid #4a5568;
             border-radius: 4px;
             font-size: 16px;
             background: #1a202c;
             color: white;
+            box-sizing: border-box;
         }
         input[type="text"]::placeholder {
             color: #a0aec0;
         }
         button#sendButton {
+            height: 40px;
+            padding: 0 20px;
             background: #4299e1;
             color: white;
-            padding: 10px 20px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -111,19 +112,19 @@
             transition: background 0.3s;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
         }
         button#sendButton:hover {
             background: #3182ce;
         }
-.button-container {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin: 10px 0;
-    /* Add padding to match input-container */
-    padding: 0 10px;  /* Added this line */
-}
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin: 10px 0;
+            padding: 0 10px;
+        }
         .error-button {
             background-color: transparent;
             color: #a0aec0;
@@ -133,6 +134,9 @@
             cursor: pointer;
             font-size: 12px;
             transition: all 0.3s ease;
+            height: 32px;
+            display: flex;
+            align-items: center;
         }
         .error-button:hover {
             background-color: #742a2a;
@@ -144,13 +148,16 @@
             border: 1px solid #4a5568;
             border-radius: 4px;
             cursor: pointer;
-            padding: 8px;
+            padding: 8px 15px;
             font-size: 12px;
             transition: all 0.3s ease;
             overflow: hidden;
             white-space: nowrap;
             min-width: 35px;
             color: #a0aec0;
+            height: 32px;
+            display: flex;
+            align-items: center;
         }
         .connection-status-button.expanded {
             width: auto;
@@ -263,7 +270,15 @@
         const sendButton = document.getElementById('sendButton');
         const userInput = document.getElementById('userInput');
 
-        function toggleConnectionStatus() {
+        async function typewriterEffect(element, text, speed = 30) {
+            element.textContent = '';
+            for (let i = 0; i < text.length; i++) {
+                element.textContent += text[i];
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
+function toggleConnectionStatus() {
             const button = document.getElementById('connectionButton');
             const isExpanded = button.classList.contains('expanded');
             
@@ -303,7 +318,6 @@
 
             updateConnectionButton(button, emoji, text, bgColor, expand);
             
-            // Auto collapse after 2 seconds if expanded
             if (expand) {
                 setTimeout(() => {
                     button.classList.remove('expanded');
@@ -348,7 +362,6 @@
             const questions = [
                 'What\'s your background in sustainability?',
                 'Tell me about your legal education',
-                'What languages do you speak?',
                 'What makes you unique?',
                 'How do you combine law and technology?',
                 'What was your role at Inrate?'
@@ -368,6 +381,14 @@
             chatHistory.appendChild(questionsDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
+
+        // Add input event listener to remove questions when typing
+        userInput.addEventListener('input', function() {
+            const suggestedQuestions = document.getElementById('suggestedQuestions');
+            if (suggestedQuestions && this.value.trim() !== '') {
+                suggestedQuestions.remove();
+            }
+        });
 
         function askQuestion(question) {
             document.getElementById('suggestedQuestions')?.remove();
@@ -403,7 +424,7 @@
 
                 const data = await response.json();
                 removeLoadingMessage(loadingId);
-                addToChat('Bot', data.response);
+                await addToChat('Bot', data.response);
             } catch (error) {
                 console.error('Error:', error);
                 removeLoadingMessage(loadingId);
@@ -416,7 +437,7 @@
             }
         }
 
-        function addToChat(sender, message) {
+        async function addToChat(sender, message) {
             const chatHistory = document.getElementById('chatHistory');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender.toLowerCase()}-message`;
@@ -427,12 +448,24 @@
             
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            
+            const senderSpan = document.createElement('strong');
+            senderSpan.textContent = `${sender}: `;
+            contentDiv.appendChild(senderSpan);
+            
+            const messageSpan = document.createElement('span');
+            contentDiv.appendChild(messageSpan);
             
             messageDiv.appendChild(iconDiv);
             messageDiv.appendChild(contentDiv);
-            
             chatHistory.appendChild(messageDiv);
+            
+            if (sender === 'Bot') {
+                await typewriterEffect(messageSpan, message);
+            } else {
+                messageSpan.textContent = message;
+            }
+            
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
@@ -527,14 +560,12 @@
             }
         }
 
-        // Add event listener for Enter key
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !userInput.disabled) {
                 sendMessage();
             }
         });
 
-        // Focus input on page load
         userInput.focus();
     </script>
 </body>
