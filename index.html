@@ -176,6 +176,43 @@
             opacity: 1;
             margin-left: 5px;
         }
+.info-button {
+    background-color: transparent;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 8px 15px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: 35px;
+    color: #a0aec0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.info-button.expanded {
+    width: auto;
+    padding: 8px 15px;
+    background-color: #4a5568;
+}
+
+.info-text {
+    display: inline-block;
+    margin-left: 5px;
+    max-width: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.info-text.visible {
+    max-width: 400px;
+    opacity: 1;
+    margin-left: 5px;
+}
         .error-modal {
             display: none;
             position: fixed;
@@ -244,10 +281,11 @@
             <input type="text" id="userInput" placeholder="Ask me anything about Bénédict's CV..." aria-label="Message input">
             <button onclick="sendMessage()" id="sendButton">Send 📤</button>
         </div>
-        <div class="button-container">
-            <button onclick="openErrorModal()" class="error-button">📝 Report Issue</button>
-            <button onclick="toggleConnectionStatus()" class="connection-status-button" id="connectionButton">🔄</button>
-        </div>
+<div class="button-container">
+    <button onclick="openErrorModal()" class="error-button">📝 Report Issue</button>
+    <button onclick="toggleInfoButton()" class="info-button" id="infoButton">❓</button>
+    <button onclick="toggleConnectionStatus()" class="connection-status-button" id="connectionButton">🔄</button>
+</div>
     </div>
 
     <!-- Error Reporting Modal -->
@@ -344,6 +382,41 @@ function toggleConnectionStatus() {
                 textSpan.classList.add('visible');
             }
         }
+function toggleInfoButton() {
+    const button = document.getElementById('infoButton');
+    const isExpanded = button.classList.contains('expanded');
+    
+    if (!isExpanded) {
+        // Change emoji and expand
+        button.firstChild.textContent = '🧟';
+        
+        // Add info text
+        let textSpan = button.querySelector('.info-text');
+        if (!textSpan) {
+            textSpan = document.createElement('span');
+            textSpan.className = 'info-text';
+            textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes. I\'m happy to confirm or deny any information it gives in a personal conversation.';
+            button.appendChild(textSpan);
+        }
+        
+        // Expand
+        button.classList.add('expanded');
+        textSpan.classList.add('visible');
+        
+        // Auto collapse after 4 seconds
+        setTimeout(() => {
+            button.classList.remove('expanded');
+            textSpan.classList.remove('visible');
+            button.firstChild.textContent = '❓';
+        }, 4000);
+    } else {
+        // Collapse
+        button.classList.remove('expanded');
+        const textSpan = button.querySelector('.info-text');
+        if (textSpan) textSpan.classList.remove('visible');
+        button.firstChild.textContent = '❓';
+    }
+}
 
         window.onload = async function() {
             await checkBackendConnection(false);
