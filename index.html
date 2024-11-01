@@ -124,6 +124,7 @@
             justify-content: flex-end;
             margin: 10px 0;
             padding: 0 10px;
+	    flex-wrap: wrap;
         }
         .error-button {
             background-color: transparent;
@@ -191,12 +192,15 @@
     height: 32px;
     display: flex;
     align-items: center;
+    flex-grow: 1;
+    max-width: fit-content;
 }
 
 .info-button.expanded {
     width: auto;
     padding: 8px 15px;
     background-color: #4a5568;
+    max-width: 80%;
 }
 
 .info-text {
@@ -209,7 +213,7 @@
 }
 
 .info-text.visible {
-    max-width: 400px;
+    max-width: 600px;
     opacity: 1;
     margin-left: 5px;
 }
@@ -395,7 +399,7 @@ function toggleInfoButton() {
         if (!textSpan) {
             textSpan = document.createElement('span');
             textSpan.className = 'info-text';
-            textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes. I\'m happy to confirm or deny any information it gives in a personal conversation.';
+            textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes. I\'m happy to verify any information in a personal conversation.';
             button.appendChild(textSpan);
         }
         
