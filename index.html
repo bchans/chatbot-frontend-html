@@ -614,6 +614,12 @@
                 alert('Failed to send error report.');
             }
         }
+// Listen for "Enter" key to send message
+userInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter' && !userInput.disabled) {
+        sendMessage();
+    }
+});
     </script>
 </body>
 </html>
