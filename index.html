@@ -125,7 +125,7 @@
             justify-content: flex-end;
             margin: 10px 0;
             padding: 0 10px;
-	        align-items: center;
+	    align-items: center;
         }
         .error-button {
             background-color: transparent;
@@ -145,18 +145,79 @@
             color: #fed7d7;
             border-color: #742a2a;
         }
-        .connection-status-button, .info-button {
+        .connection-status-button {
             background-color: transparent;
             border: 1px solid #4a5568;
             border-radius: 4px;
             cursor: pointer;
             padding: 8px 15px;
             font-size: 12px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 35px;
             color: #a0aec0;
             height: 32px;
             display: flex;
             align-items: center;
         }
+        .connection-status-button.expanded {
+            width: auto;
+            padding: 8px 15px;
+        }
+        .connection-status-text {
+            display: inline-block;
+            margin-left: 5px;
+            max-width: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .connection-status-text.visible {
+            max-width: 200px;
+            opacity: 1;
+            margin-left: 5px;
+        }
+.info-button {
+    background-color: transparent;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 8px 15px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: 35px;
+    color: #a0aec0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    max-width: fit-content;
+}
+
+.info-button.expanded {
+    width: auto;
+    padding: 8px 15px;
+    background-color: #4a5568;
+    max-width: fit-content;
+}
+
+.info-text {
+    display: inline-block;
+    margin-left: 5px;
+    max-width: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.info-text.visible {
+    max-width: 300px;
+    opacity: 1;
+    margin-left: 5px;
+}
         .error-modal {
             display: none;
             position: fixed;
@@ -227,7 +288,7 @@
         </div>
         <div class="button-container">
             <button onclick="openErrorModal()" class="error-button">📝 Report Issue</button>
-            <button onclick="toggleInfoButton()" class="info-button" id="infoButton">❓</button>
+            <button onclick="toggleInfoButton()" class="info-button" id="infoButton">⚠️</button>
             <button onclick="toggleConnectionStatus()" class="connection-status-button" id="connectionButton">🔄</button>
         </div>
     </div>
@@ -269,6 +330,38 @@
             addSuggestedQuestions();
         };
 
+        async function addToChat(sender, message) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender.toLowerCase()}-message`;
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'message-icon';
+            iconDiv.textContent = sender === 'You' ? '👤' : sender === 'Bot' ? '🤖' : '⚠️';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const senderSpan = document.createElement('strong');
+            senderSpan.textContent = `${sender}: `;
+            contentDiv.appendChild(senderSpan);
+
+            const messageSpan = document.createElement('span');
+            contentDiv.appendChild(messageSpan);
+
+            messageDiv.appendChild(iconDiv);
+            messageDiv.appendChild(contentDiv);
+            chatHistory.appendChild(messageDiv);
+
+            if (sender === 'Bot') {
+                await typewriterEffect(messageSpan, message);
+            } else {
+                messageSpan.textContent = message;
+            }
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
         function addSuggestedQuestions() {
             const chatHistory = document.getElementById('chatHistory');
             const questionsDiv = document.createElement('div');
@@ -296,6 +389,12 @@
 
             chatHistory.appendChild(questionsDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function askQuestion(question) {
+            document.getElementById('suggestedQuestions')?.remove();
+            userInput.value = question;
+            sendMessage();
         }
 
         async function sendMessage() {
@@ -339,38 +438,6 @@
             }
         }
 
-        async function addToChat(sender, message) {
-            const chatHistory = document.getElementById('chatHistory');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender.toLowerCase()}-message`;
-
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'message-icon';
-            iconDiv.textContent = sender === 'You' ? '👤' : sender === 'Bot' ? '🤖' : '⚠️';
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-
-            const senderSpan = document.createElement('strong');
-            senderSpan.textContent = `${sender}: `;
-            contentDiv.appendChild(senderSpan);
-
-            const messageSpan = document.createElement('span');
-            contentDiv.appendChild(messageSpan);
-
-            messageDiv.appendChild(iconDiv);
-            messageDiv.appendChild(contentDiv);
-            chatHistory.appendChild(messageDiv);
-
-            if (sender === 'Bot') {
-                await typewriterEffect(messageSpan, message);
-            } else {
-                messageSpan.textContent = message;
-            }
-
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
         function addLoadingMessage() {
             const chatHistory = document.getElementById('chatHistory');
             const loadingDiv = document.createElement('div');
@@ -401,7 +468,20 @@
             }
         }
 
-        function checkBackendConnection(expand = false) {
+        function toggleConnectionStatus() {
+            const button = document.getElementById('connectionButton');
+            const isExpanded = button.classList.contains('expanded');
+            
+            if (!isExpanded) {
+                checkBackendConnection(true);
+            } else {
+                button.classList.remove('expanded');
+                const textSpan = button.querySelector('.connection-status-text');
+                if (textSpan) textSpan.classList.remove('visible');
+            }
+        }
+
+        async function checkBackendConnection(expand = false) {
             const button = document.getElementById('connectionButton');
             let emoji = '🔄';
             let text = 'Checking...';
@@ -410,28 +490,79 @@
             updateConnectionButton(button, emoji, text, bgColor, expand);
 
             try {
-                fetch(`${API_URL}/`).then(response => {
-                    if (response.ok) {
-                        emoji = '🟢';
-                        text = 'Connected';
-                        bgColor = '#276749';
-                    } else {
-                        emoji = '🔴';
-                        text = 'Error';
-                        bgColor = '#742a2a';
-                    }
-                    updateConnectionButton(button, emoji, text, bgColor, expand);
-                }).catch(() => {
+                const response = await fetch(`${API_URL}/`);
+                if (response.ok) {
+                    emoji = '🟢';
+                    text = 'Connected';
+                    bgColor = '#276749';
+                } else {
                     emoji = '🔴';
                     text = 'Error';
                     bgColor = '#742a2a';
-                    updateConnectionButton(button, emoji, text, bgColor, expand);
-                });
+                }
             } catch {
                 emoji = '🔴';
                 text = 'Error';
                 bgColor = '#742a2a';
-                updateConnectionButton(button, emoji, text, bgColor, expand);
+            }
+
+            updateConnectionButton(button, emoji, text, bgColor, expand);
+            
+            if (expand) {
+                setTimeout(() => {
+                    button.classList.remove('expanded');
+                    const textSpan = button.querySelector('.connection-status-text');
+                    if (textSpan) textSpan.classList.remove('visible');
+                }, 2000);
+            }
+        }
+
+        function updateConnectionButton(button, emoji, text, bgColor, expand) {
+            let textSpan = button.querySelector('.connection-status-text');
+            if (!textSpan) {
+                textSpan = document.createElement('span');
+                textSpan.className = 'connection-status-text';
+                button.appendChild(textSpan);
+            }
+            
+            button.firstChild.textContent = emoji;
+            textSpan.textContent = text;
+            button.style.backgroundColor = expand ? bgColor : 'transparent';
+            
+            if (expand) {
+                button.classList.add('expanded');
+                textSpan.classList.add('visible');
+            }
+        }
+
+        function toggleInfoButton() {
+            const button = document.getElementById('infoButton');
+            const isExpanded = button.classList.contains('expanded');
+            
+            if (!isExpanded) {
+                button.firstChild.textContent = '🧟';
+                
+                let textSpan = button.querySelector('.info-text');
+                if (!textSpan) {
+                    textSpan = document.createElement('span');
+                    textSpan.className = 'info-text';
+                    textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes.';
+                    button.appendChild(textSpan);
+                }
+                
+                button.classList.add('expanded');
+                textSpan.classList.add('visible');
+                
+                setTimeout(() => {
+                    button.classList.remove('expanded');
+                    textSpan.classList.remove('visible');
+                    button.firstChild.textContent = '⚠️';
+                }, 4000);
+            } else {
+                button.classList.remove('expanded');
+                const textSpan = button.querySelector('.info-text');
+                if (textSpan) textSpan.classList.remove('visible');
+                button.firstChild.textContent = '⚠️';
             }
         }
 
@@ -481,28 +612,6 @@
                 }
             } catch {
                 alert('Failed to send error report.');
-            }
-        }
-
-        function toggleInfoButton() {
-            const button = document.getElementById('infoButton');
-            const isExpanded = button.classList.contains('expanded');
-            if (!isExpanded) {
-                button.firstChild.textContent = '🧟';
-                let textSpan = button.querySelector('.info-text');
-                if (!textSpan) {
-                    textSpan = document.createElement('span');
-                    textSpan.className = 'info-text';
-                    textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes.';
-                    button.appendChild(textSpan);
-                }
-                button.classList.add('expanded');
-                textSpan.classList.add('visible');
-                setTimeout(() => {
-                    button.classList.remove('expanded');
-                    textSpan.classList.remove('visible');
-                    button.firstChild.textContent = '❓';
-                }, 4000);
             }
         }
     </script>
