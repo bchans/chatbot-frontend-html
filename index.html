@@ -312,7 +312,12 @@
         const API_URL = 'https://bchans.pythonanywhere.com';
         const sendButton = document.getElementById('sendButton');
         const userInput = document.getElementById('userInput');
-        let sessionId = localStorage.getItem('session_id') || 'default';
+        let sessionId = localStorage.getItem('session_id');
+	if (!sessionId) {
+    	sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    	localStorage.setItem('session_id', sessionId);
+	}
+
 
         async function typewriterEffect(element, text, speed = 30) {
             element.textContent = '';
