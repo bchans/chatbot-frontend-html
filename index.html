@@ -125,7 +125,7 @@
             justify-content: flex-end;
             margin: 10px 0;
             padding: 0 10px;
-	    align-items: center;
+            align-items: center;
         }
         .error-button {
             background-color: transparent;
@@ -178,46 +178,43 @@
             opacity: 1;
             margin-left: 5px;
         }
-.info-button {
-    background-color: transparent;
-    border: 1px solid #4a5568;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 8px 15px;
-    font-size: 12px;
-    transition: all 0.3s ease;
-    overflow: hidden;
-    white-space: nowrap;
-    min-width: 35px;
-    color: #a0aec0;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-    max-width: fit-content;
-}
-
-.info-button.expanded {
-    width: auto;
-    padding: 8px 15px;
-    background-color: #4a5568;
-    max-width: fit-content;
-}
-
-.info-text {
-    display: inline-block;
-    margin-left: 5px;
-    max-width: 0;
-    opacity: 0;
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.info-text.visible {
-    max-width: 300px;
-    opacity: 1;
-    margin-left: 5px;
-}
+        .info-button {
+            background-color: transparent;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 8px 15px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 35px;
+            color: #a0aec0;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            max-width: fit-content;
+        }
+        .info-button.expanded {
+            width: auto;
+            padding: 8px 15px;
+            background-color: #4a5568;
+            max-width: fit-content;
+        }
+        .info-text {
+            display: inline-block;
+            margin-left: 5px;
+            max-width: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .info-text.visible {
+            max-width: 300px;
+            opacity: 1;
+            margin-left: 5px;
+        }
         .error-modal {
             display: none;
             position: fixed;
@@ -275,6 +272,36 @@
             font-style: italic;
             animation: pulse 1.5s infinite;
         }
+        /* Styles for Job Posting Component */
+        .job-posting-container {
+            border: 1px solid #4a5568;
+            padding: 15px;
+            border-radius: 8px;
+            background: #2d3748;
+            margin: 20px 0;
+            color: white;
+        }
+        .job-posting-container textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            background: #1a202c;
+            color: white;
+            resize: vertical;
+        }
+        .job-posting-container button {
+            background-color: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .job-posting-container p {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -292,6 +319,9 @@
             <button onclick="toggleConnectionStatus()" class="connection-status-button" id="connectionButton">🔄</button>
         </div>
     </div>
+
+    <!-- Job Posting Component Container -->
+    <div id="jobPostingContainer"></div>
 
     <!-- Error Reporting Modal -->
     <div id="errorModal" class="error-modal">
@@ -313,11 +343,10 @@
         const sendButton = document.getElementById('sendButton');
         const userInput = document.getElementById('userInput');
         let sessionId = localStorage.getItem('session_id');
-	if (!sessionId) {
-    	sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    	localStorage.setItem('session_id', sessionId);
-	}
-
+        if (!sessionId) {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('session_id', sessionId);
+        }
 
         async function typewriterEffect(element, text, speed = 30) {
             element.textContent = '';
@@ -327,12 +356,21 @@
             }
         }
 
+        async function loadJobPostingComponent() {
+            const response = await fetch('jobPosting.html');
+            const jobPostingHtml = await response.text();
+            document.getElementById('jobPostingContainer').innerHTML = jobPostingHtml;
+        }
+
         window.onload = async function() {
             await checkBackendConnection(false);
             setInterval(() => checkBackendConnection(false), 30000);
             
             addToChat('Bot', 'Hi! I\'m Benedict\'s CV Assistant. I\'d be happy to tell you about his background in sustainability, legal expertise, or tech experience. What would you like to know?');
             addSuggestedQuestions();
+
+            // Load job posting component
+            await loadJobPostingComponent();
         };
 
         async function addToChat(sender, message) {
@@ -619,12 +657,16 @@
                 alert('Failed to send error report.');
             }
         }
-// Listen for "Enter" key to send message
-userInput.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter' && !userInput.disabled) {
-        sendMessage();
-    }
-});
+
+        // Listen for "Enter" key to send message
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !userInput.disabled) {
+                sendMessage();
+            }
+        });
     </script>
+
+    <!-- Job Posting JavaScript -->
+    <script src="jobPosting.js"></script>
 </body>
 </html>

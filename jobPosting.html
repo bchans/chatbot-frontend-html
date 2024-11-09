@@ -1,0 +1,78 @@
+<!-- jobPosting.html -->
+<div class="job-posting-container">
+    <h3>Paste Job Posting URL</h3>
+    <input type="text" id="jobPostingUrl" placeholder="Enter job posting URL..." oninput="handleUrlInput()">
+    
+    <!-- Placeholder for loading animation and job title display -->
+    <div id="loadingAnimation" style="display: none; margin-top: 10px;">⏳ Loading...</div>
+    <div id="jobTitleDisplay" style="display: none; margin-top: 10px;">
+        <p>Job Title: <span id="jobTitle"></span></p>
+        <p><em>Conversation regarding <span id="jobTitleMessage"></span> position</em></p>
+    </div>
+</div>
+
+<script>
+    async function handleUrlInput() {
+        const jobUrl = document.getElementById("jobPostingUrl").value.trim();
+        if (jobUrl) {
+            document.getElementById("loadingAnimation").style.display = "block";
+            document.getElementById("jobTitleDisplay").style.display = "none";
+            await fetchJobTitle(jobUrl);
+        }
+    }
+
+    async function fetchJobTitle(url) {
+        try {
+            const response = await fetch('https://bchans.pythonanywhere.com/extract-job-title', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_url: url })
+            });
+
+            if (!response.ok) throw new Error("Failed to fetch job title");
+
+            const data = await response.json();
+            const { job_title, message } = data;
+
+            document.getElementById("loadingAnimation").style.display = "none";
+            document.getElementById("jobTitle").textContent = job_title;
+            document.getElementById("jobTitleMessage").textContent = job_title;
+            document.getElementById("jobTitleDisplay").style.display = "block";
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("loadingAnimation").textContent = "Error loading job title.";
+        }
+    }
+</script>
+
+<style>
+    /* Add styles for the job posting container */
+    .job-posting-container {
+        text-align: center;
+        padding: 15px;
+        background: #2d3748;
+        color: white;
+        border: 1px solid #4a5568;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    #jobPostingUrl {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background: #1a202c;
+        color: white;
+        border: 1px solid #4a5568;
+        border-radius: 4px;
+    }
+    #loadingAnimation {
+        font-size: 18px;
+        color: #a0aec0;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+</style>
