@@ -326,17 +326,49 @@
             }
         }
 
-        async function loadJobPostingComponent() {
-            try {
-                const response = await fetch('jobPosting.html');
-                if (!response.ok) throw new Error("Failed to load jobPosting.html");
+async function loadJobPostingComponent() {
+    try {
+        const response = await fetch('jobPosting.html');
+        if (!response.ok) throw new Error("Failed to load jobPosting.html");
 
-                const jobPostingHtml = await response.text();
-                document.getElementById('jobPostingContainer').innerHTML = jobPostingHtml;
-            } catch (error) {
-                console.error("Error loading jobPosting.html:", error);
-            }
-        }
+        const jobPostingHtml = await response.text();
+        document.getElementById('jobPostingContainer').innerHTML = jobPostingHtml;
+    } catch (error) {
+        console.error("Error loading jobPosting.html:", error);
+    }
+}
+
+async function handleUrlInput() {
+    const jobUrl = document.getElementById("jobPostingUrl").value.trim();
+    if (jobUrl) {
+        document.getElementById("loadingAnimation").style.display = "block";
+        document.getElementById("jobTitleDisplay").style.display = "none";
+        await fetchJobTitle(jobUrl);
+    }
+}
+
+async function fetchJobTitle(url) {
+    try {
+        const response = await fetch(`${API_URL}/extract-job-title`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_url: url })
+        });
+
+        if (!response.ok) throw new Error(`Failed to fetch job title: ${response.statusText}`);
+
+        const data = await response.json();
+        const { job_title, message } = data;
+
+        document.getElementById("loadingAnimation").style.display = "none";
+        document.getElementById("jobTitle").textContent = job_title;
+        document.getElementById("jobTitleMessage").textContent = job_title;
+        document.getElementById("jobTitleDisplay").style.display = "block";
+    } catch (error) {
+        console.error("Error fetching job title:", error);
+        document.getElementById("loadingAnimation").textContent = "Error loading job title.";
+    }
+}
 
         window.onload = async function() {
             await loadJobPostingComponent();
