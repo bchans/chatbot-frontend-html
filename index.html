@@ -98,14 +98,30 @@
             border-bottom-right-radius: 5px;
         }
         .message-icon {
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             background-color: #4a5568;
-            font-size: 18px;
+            font-size: 24px;
+        }
+        .template-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .template-question {
+            background-color: #4a5568;
+            padding: 8px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .template-question:hover {
+            background-color: #2b6cb0;
         }
         .input-container {
             display: flex;
@@ -209,6 +225,22 @@
             text-align: center;
             margin-top: 10px;
         }
+        .connection-button {
+            position: relative;
+        }
+        .connection-status-text {
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            margin-right: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .connection-status-text.visible {
+            opacity: 1;
+        }
 
         @keyframes dot-blink {
             0%, 20% { content: "⏳"; }
@@ -246,6 +278,13 @@
         </div>
 
         <div id="chatHistory" class="chat-history"></div>
+
+        <div class="template-questions">
+            <span class="template-question" onclick="askTemplateQuestion(this)">What are Benedict's key skills? 🎯</span>
+            <span class="template-question" onclick="askTemplateQuestion(this)">Tell me about Benedict's work experience 💼</span>
+            <span class="template-question" onclick="askTemplateQuestion(this)">What programming languages does Benedict know? 💻</span>
+            <span class="template-question" onclick="askTemplateQuestion(this)">Does Benedict have remote work experience? 🏠</span>
+        </div>
         
         <div class="input-container">
             <input type="text" id="userInput" placeholder="Ask me anything about Bénédict's CV..." aria-label="Message input">
@@ -260,7 +299,7 @@
     </div>
 
     <div id="infoMessage" class="info-message">
-        This is Benedict's CV Assistant. I can help analyze job postings and match them with Benedict's qualifications. Start by pasting a job posting URL above! 🎯
+        By clicking this button, you can interact with me, asking questions about Benedict's CV and job matching capabilities. Let's find the perfect match! 🎯
     </div>
 
     <div id="errorModal" class="error-modal">
@@ -278,44 +317,49 @@
     </div>
 
     <script>
-        const API_URL = 'https://bchans.pythonanywhere.com/';  // Replace with actual backend URL
+        const API_URL = 'https://your-backend-url.com';
         let sessionId = localStorage.getItem('session_id');
         if (!sessionId) {
             sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             localStorage.setItem('session_id', sessionId);
         }
 
-        // Show welcome message on page load
         window.addEventListener('DOMContentLoaded', () => {
-            const welcomeMessage = "👋 Hello! I'm Benedict's CV Assistant. I can help analyze job postings and match them with Benedict's qualifications. Start by pasting a job posting URL above!";
+            const welcomeMessage = "👋 Hello! I'm Benedict's CV Assistant. I can help analyze job postings and match them with Benedict's qualifications. Start by pasting a job posting URL above, or ask me anything about Benedict's experience!";
             addToChat('Bot', welcomeMessage);
         });
 
+        function askTemplateQuestion(element) {
+            const question = element.textContent;
+            document.getElementById('userInput').value = question;
+            sendMessage();
+        }
+
         async function submitJobLink() {
             const container = document.querySelector('.job-posting-container');
-            const jobPostingUrl = document.getElementById('jobPostingUrl').value;
-            if (!jobPostingUrl) {
+            const url = document.getElementById('jobPostingUrl').value;
+            
+            if (!url) {
                 alert("Please enter a valid job posting URL.");
                 return;
             }
 
             document.getElementById('animationContainer').style.display = 'block';
             container.style.display = 'none';
-
+            
             try {
                 const response = await fetch(`${API_URL}/submit-job-link`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId, job_link: jobPostingUrl })
+                    body: JSON.stringify({ session_id: sessionId, job_link: url })
                 });
+                
                 const result = await response.json();
                 
-                // Show success checkmark
                 container.innerHTML = '<span class="success-checkmark" onclick="resetJobPostingInput()">✅</span>';
                 container.classList.add('success');
                 container.style.display = 'flex';
                 
-                // Add confirmation message to chat
                 addToChat('Bot', 'Job posting received! Feel free to ask me anything about how Benedict\'s experience matches this role.');
             } catch (error) {
                 console.error("Error submitting job link:", error);
@@ -371,7 +415,7 @@
                 sendButton.disabled = false;
                 userInput.focus();
             }
-        }
+}
 
         function addLoadingMessage() {
             const chatHistory = document.getElementById('chatHistory');
@@ -427,19 +471,16 @@
             const button = document.getElementById('infoButton');
             const infoMessage = document.getElementById('infoMessage');
             
-            button.classList.add('spin');
-            
-            // Toggle message visibility
-            if (infoMessage.style.display === 'block') {
-                infoMessage.style.display = 'none';
-            } else {
+            // Change emoji and add spin animation
+            if (!button.classList.contains('spin')) {
+                button.textContent = '❓';
+                button.classList.add('spin');
                 infoMessage.style.display = 'block';
-            }
-
-            // Remove spin class after animation completes
-            setTimeout(() => {
+            } else {
+                button.textContent = '⚠️';
                 button.classList.remove('spin');
-            }, 1000);
+                infoMessage.style.display = 'none';
+            }
         }
 
         function toggleConnectionStatus() {
