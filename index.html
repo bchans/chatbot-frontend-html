@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Benedict's CV Assistant</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤖</text></svg>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,166 +21,203 @@
             background: #2d3748;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .job-posting-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            justify-content: center;
-            min-height: 50px;
-        }
-        .job-posting-container input {
-            width: 60%;
-            padding: 8px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #1a202c;
-            color: white;
-        }
-        .job-posting-container button {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .job-posting-container.success {
-            justify-content: center;
-            align-items: center;
-        }
-        .success-checkmark {
-            font-size: 24px;
-            cursor: pointer;
-            animation: popIn 0.3s ease-out;
-        }
-        .animation-container {
-            display: none;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 20px;
-        }
-        .dot-loading span {
-            display: inline-block;
-            animation: dot-blink 1s steps(5, end) infinite;
-        }
         .chat-history {
-            min-height: 300px;
-            max-height: 500px;
+            height: 400px;
             overflow-y: auto;
-            margin: 15px 0;
-            padding: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #1a202c;
+            border-radius: 5px;
+        }
+        .suggested-questions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .question-button {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
             border: 1px solid #4a5568;
-            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin: 2px;
+        }
+        .question-button:hover {
+            background-color: #34495e;
+            transform: translateY(-1px);
+            border-color: #60a5fa;
         }
         .message {
             display: flex;
-            margin-bottom: 15px;
             align-items: flex-start;
-        }
-        .message.you {
-            flex-direction: row-reverse;
-        }
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 15px;
-            margin: 0 10px;
-            line-height: 1.4;
-        }
-        .message.bot .message-bubble {
-            background-color: #4a5568;
-            border-bottom-left-radius: 5px;
-        }
-        .message.you .message-bubble {
-            background-color: #2b6cb0;
-            border-bottom-right-radius: 5px;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
         }
         .message-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background-color: #4a5568;
             font-size: 24px;
+            min-width: 30px;
+            text-align: center;
         }
-        .template-questions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
+        .message-content {
+            flex: 1;
         }
-        .template-question {
-            background-color: #4a5568;
-            padding: 8px 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+        .user-message {
+            background-color: #2c5282;
+            margin-left: 20px;
         }
-        .template-question:hover {
-            background-color: #2b6cb0;
+        .bot-message {
+            background-color: #2d3748;
+            margin-right: 20px;
+        }
+        .system-message {
+            color: #fed7d7;
+            background-color: #742a2a;
         }
         .input-container {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 10px;
+            margin: 0;
+            background: #2d3748;
+            padding: 10px;
+            border-radius: 8px;
         }
-        .input-container input {
-            flex-grow: 1;
-            padding: 8px;
-            font-size: 16px;
-            border: 1px solid #ddd;
+        input[type="text"] {
+            flex: 1;
+            height: 40px;
+            padding: 0 10px;
+            border: 1px solid #4a5568;
             border-radius: 4px;
+            font-size: 16px;
             background: #1a202c;
             color: white;
+            box-sizing: border-box;
         }
-        .input-container button {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #4CAF50;
+        input[type="text"]::placeholder {
+            color: #a0aec0;
+        }
+        button#sendButton {
+            height: 40px;
+            padding: 0 20px;
+            background: #4299e1;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        button#sendButton:hover {
+            background: #3182ce;
         }
         .button-container {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 10px;
             justify-content: flex-end;
+            margin: 10px 0;
+            padding: 0 10px;
+	    align-items: center;
         }
-        .button-container button {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #4a5568;
-            color: white;
-            border: none;
+        .error-button {
+            background-color: transparent;
+            color: #a0aec0;
+            padding: 8px 15px;
+            border: 1px solid #4a5568;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 12px;
             transition: all 0.3s ease;
+            height: 32px;
+            display: flex;
+            align-items: center;
         }
-        .info-button {
-            transition: transform 0.3s ease;
+        .error-button:hover {
+            background-color: #742a2a;
+            color: #fed7d7;
+            border-color: #742a2a;
         }
-        .info-button.spin {
-            animation: spinButton 1s ease-out;
+        .connection-status-button {
+            background-color: transparent;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 8px 15px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 35px;
+            color: #a0aec0;
+            height: 32px;
+            display: flex;
+            align-items: center;
         }
-        .info-message {
-            display: none;
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background-color: #4a5568;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            max-width: 300px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
+        .connection-status-button.expanded {
+            width: auto;
+            padding: 8px 15px;
         }
+        .connection-status-text {
+            display: inline-block;
+            margin-left: 5px;
+            max-width: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .connection-status-text.visible {
+            max-width: 200px;
+            opacity: 1;
+            margin-left: 5px;
+        }
+.info-button {
+    background-color: transparent;
+    border: 1px solid #4a5568;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 8px 15px;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    white-space: nowrap;
+    min-width: 35px;
+    color: #a0aec0;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    max-width: fit-content;
+}
+
+.info-button.expanded {
+    width: auto;
+    padding: 8px 15px;
+    background-color: #4a5568;
+    max-width: fit-content;
+}
+
+.info-text {
+    display: inline-block;
+    margin-left: 5px;
+    max-width: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.info-text.visible {
+    max-width: 300px;
+    opacity: 1;
+    margin-left: 5px;
+}
         .error-modal {
             display: none;
             position: fixed;
@@ -188,78 +225,55 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.75);
             z-index: 1000;
         }
         .error-modal-content {
-            position: relative;
             background-color: #2d3748;
-            margin: 15% auto;
             padding: 20px;
             border-radius: 8px;
-            width: 80%;
             max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+            color: white;
         }
         .close-modal {
             position: absolute;
             right: 10px;
             top: 10px;
-            font-size: 24px;
             cursor: pointer;
-        }
-        .error-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            font-size: 20px;
+            color: #a0aec0;
         }
         .error-form textarea {
-            background: #1a202c;
-            color: white;
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
             border: 1px solid #4a5568;
             border-radius: 4px;
-            padding: 8px;
+            height: 100px;
+            resize: vertical;
+            background: #1a202c;
+            color: white;
         }
         .success-message {
-            display: none;
-            color: #48bb78;
-            text-align: center;
+            color: #9ae6b4;
+            background-color: #22543d;
+            border: 1px solid #276749;
+            padding: 10px;
             margin-top: 10px;
+            border-radius: 4px;
+            display: none;
         }
-        .connection-button {
-            position: relative;
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
         }
-        .connection-status-text {
-            position: absolute;
-            right: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            white-space: nowrap;
-            margin-right: 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .connection-status-text.visible {
-            opacity: 1;
-        }
-
-        @keyframes dot-blink {
-            0%, 20% { content: "⏳"; }
-            40% { content: "⏳."; }
-            60% { content: "⏳.."; }
-            80%, 100% { content: "⏳..."; }
-        }
-        @keyframes spinButton {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            70% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .loading {
+            color: #a0aec0;
+            font-style: italic;
+            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
@@ -267,30 +281,11 @@
     <div class="chat-container">
         <h2>Benedict's CV Assistant</h2>
         
-        <div class="job-posting-container">
-            <input type="url" id="jobPostingUrl" placeholder="Enter job posting URL..." aria-label="Job Posting URL">
-            <button onclick="submitJobLink()" id="submitJobLinkButton">Submit Link 🔗</button>
-        </div>
-
-        <div class="animation-container" id="animationContainer">
-            <div class="dot-loading"><span>⏳</span></div>
-            <p>Processing job details...</p>
-        </div>
-
         <div id="chatHistory" class="chat-history"></div>
-
-        <div class="template-questions">
-            <span class="template-question" onclick="askTemplateQuestion(this)">What are Benedict's key skills? 🎯</span>
-            <span class="template-question" onclick="askTemplateQuestion(this)">Tell me about Benedict's work experience 💼</span>
-            <span class="template-question" onclick="askTemplateQuestion(this)">What programming languages does Benedict know? 💻</span>
-            <span class="template-question" onclick="askTemplateQuestion(this)">Does Benedict have remote work experience? 🏠</span>
-        </div>
-        
         <div class="input-container">
             <input type="text" id="userInput" placeholder="Ask me anything about Bénédict's CV..." aria-label="Message input">
             <button onclick="sendMessage()" id="sendButton">Send 📤</button>
         </div>
-        
         <div class="button-container">
             <button onclick="openErrorModal()" class="error-button">📝 Report Issue</button>
             <button onclick="toggleInfoButton()" class="info-button" id="infoButton">⚠️</button>
@@ -298,17 +293,14 @@
         </div>
     </div>
 
-    <div id="infoMessage" class="info-message">
-        By clicking this button, you can interact with me, asking questions about Benedict's CV and job matching capabilities. Let's find the perfect match! 🎯
-    </div>
-
+    <!-- Error Reporting Modal -->
     <div id="errorModal" class="error-modal">
         <div class="error-modal-content">
-            <span class="close-modal" onclick="closeErrorModal()">×</span>
+            <span class="close-modal" onclick="closeErrorModal()">&times;</span>
             <h3>📝 Report an Issue</h3>
             <div class="error-form">
-                <textarea id="errorReport" rows="4" placeholder="Please describe the issue..."></textarea>
-                <button onclick="submitErrorReport()">📤 Submit Report</button>
+                <textarea id="errorDescription" placeholder="Please describe the issue you encountered..."></textarea>
+                <button onclick="submitErrorReport()" class="error-button">📤 Submit Report</button>
             </div>
             <div id="successMessage" class="success-message">
                 ✅ Thank you for your report! We'll look into it.
@@ -317,70 +309,100 @@
     </div>
 
     <script>
-        const API_URL = 'https://your-backend-url.com';
+        const API_URL = 'https://bchans.pythonanywhere.com';
+        const sendButton = document.getElementById('sendButton');
+        const userInput = document.getElementById('userInput');
         let sessionId = localStorage.getItem('session_id');
-        if (!sessionId) {
-            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('session_id', sessionId);
+	if (!sessionId) {
+    	sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    	localStorage.setItem('session_id', sessionId);
+	}
+
+
+        async function typewriterEffect(element, text, speed = 30) {
+            element.textContent = '';
+            for (let i = 0; i < text.length; i++) {
+                element.textContent += text[i];
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const welcomeMessage = "👋 Hello! I'm Benedict's CV Assistant. I can help analyze job postings and match them with Benedict's qualifications. Start by pasting a job posting URL above, or ask me anything about Benedict's experience!";
-            addToChat('Bot', welcomeMessage);
-        });
+        window.onload = async function() {
+            await checkBackendConnection(false);
+            setInterval(() => checkBackendConnection(false), 30000);
+            
+            addToChat('Bot', 'Hi! I\'m Benedict\'s CV Assistant. I\'d be happy to tell you about his background in sustainability, legal expertise, or tech experience. What would you like to know?');
+            addSuggestedQuestions();
+        };
 
-        function askTemplateQuestion(element) {
-            const question = element.textContent;
-            document.getElementById('userInput').value = question;
+        async function addToChat(sender, message) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender.toLowerCase()}-message`;
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'message-icon';
+            iconDiv.textContent = sender === 'You' ? '👤' : sender === 'Bot' ? '🤖' : '⚠️';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            const senderSpan = document.createElement('strong');
+            senderSpan.textContent = `${sender}: `;
+            contentDiv.appendChild(senderSpan);
+
+            const messageSpan = document.createElement('span');
+            contentDiv.appendChild(messageSpan);
+
+            messageDiv.appendChild(iconDiv);
+            messageDiv.appendChild(contentDiv);
+            chatHistory.appendChild(messageDiv);
+
+            if (sender === 'Bot') {
+                await typewriterEffect(messageSpan, message);
+            } else {
+                messageSpan.textContent = message;
+            }
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function addSuggestedQuestions() {
+            const chatHistory = document.getElementById('chatHistory');
+            const questionsDiv = document.createElement('div');
+            questionsDiv.className = 'suggested-questions';
+            questionsDiv.id = 'suggestedQuestions';
+
+            const questions = [
+                'Why sustainability and tech?',
+                'Tell me a fun fact about you.',
+                'What makes you unique?',
+                'What did you learn at Inrate?',
+                'Your biggest achievement?'
+            ];
+
+            questions.forEach(question => {
+                const button = document.createElement('button');
+                button.className = 'question-button';
+                button.textContent = question;
+                button.onclick = () => {
+                    askQuestion(question);
+                    questionsDiv.remove();
+                };
+                questionsDiv.appendChild(button);
+            });
+
+            chatHistory.appendChild(questionsDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function askQuestion(question) {
+            document.getElementById('suggestedQuestions')?.remove();
+            userInput.value = question;
             sendMessage();
         }
 
-        async function submitJobLink() {
-            const container = document.querySelector('.job-posting-container');
-            const url = document.getElementById('jobPostingUrl').value;
-            
-            if (!url) {
-                alert("Please enter a valid job posting URL.");
-                return;
-            }
-
-            document.getElementById('animationContainer').style.display = 'block';
-            container.style.display = 'none';
-            
-            try {
-                const response = await fetch(`${API_URL}/submit-job-link`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId, job_link: url })
-                });
-                
-                const result = await response.json();
-                
-                container.innerHTML = '<span class="success-checkmark" onclick="resetJobPostingInput()">✅</span>';
-                container.classList.add('success');
-                container.style.display = 'flex';
-                
-                addToChat('Bot', 'Job posting received! Feel free to ask me anything about how Benedict\'s experience matches this role.');
-            } catch (error) {
-                console.error("Error submitting job link:", error);
-                container.style.display = 'flex';
-            } finally {
-                document.getElementById('animationContainer').style.display = 'none';
-            }
-        }
-
-        function resetJobPostingInput() {
-            const container = document.querySelector('.job-posting-container');
-            container.classList.remove('success');
-            container.innerHTML = `
-                <input type="url" id="jobPostingUrl" placeholder="Enter job posting URL..." aria-label="Job Posting URL">
-                <button onclick="submitJobLink()" id="submitJobLinkButton">Submit Link 🔗</button>
-            `;
-        }
-
         async function sendMessage() {
-            const userInput = document.getElementById('userInput');
-            const sendButton = document.getElementById('sendButton');
             const message = userInput.value.trim();
             if (!message) return;
 
@@ -395,11 +417,15 @@
             try {
                 const response = await fetch(`${API_URL}/ask`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://bchans.github.io'
+                    },
                     body: JSON.stringify({ message: message, session_id: sessionId })
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const data = await response.json();
                 removeLoadingMessage(loadingId);
                 sessionId = data.session_id;
@@ -408,32 +434,32 @@
             } catch (error) {
                 console.error('Error:', error);
                 removeLoadingMessage(loadingId);
-                addToChat('System', 'Error connecting to the bot.');
+                addToChat('System', 'Error connecting to the bot. Please try again or use the "Report Issue" button below.');
                 checkBackendConnection(true);
             } finally {
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 userInput.focus();
             }
-}
+        }
 
         function addLoadingMessage() {
             const chatHistory = document.getElementById('chatHistory');
             const loadingDiv = document.createElement('div');
             const loadingId = 'loading-' + Date.now();
             loadingDiv.id = loadingId;
-            loadingDiv.className = 'message bot';
+            loadingDiv.className = 'message loading';
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'message-icon';
             iconDiv.textContent = '🤔';
 
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = 'Thinking...';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = 'Bot is thinking...';
 
             loadingDiv.appendChild(iconDiv);
-            loadingDiv.appendChild(bubbleDiv);
+            loadingDiv.appendChild(contentDiv);
 
             chatHistory.appendChild(loadingDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
@@ -447,45 +473,10 @@
             }
         }
 
-        function addToChat(sender, message) {
-            const chatHistory = document.getElementById('chatHistory');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ' + sender.toLowerCase();
-            
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'message-icon';
-            iconDiv.textContent = sender === 'You' ? '👤' : '🤖';
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = message;
-            
-            messageDiv.appendChild(iconDiv);
-            messageDiv.appendChild(bubbleDiv);
-            
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        function toggleInfoButton() {
-            const button = document.getElementById('infoButton');
-            const infoMessage = document.getElementById('infoMessage');
-            
-            // Change emoji and add spin animation
-            if (!button.classList.contains('spin')) {
-                button.textContent = '❓';
-                button.classList.add('spin');
-                infoMessage.style.display = 'block';
-            } else {
-                button.textContent = '⚠️';
-                button.classList.remove('spin');
-                infoMessage.style.display = 'none';
-            }
-        }
-
         function toggleConnectionStatus() {
             const button = document.getElementById('connectionButton');
             const isExpanded = button.classList.contains('expanded');
+            
             if (!isExpanded) {
                 checkBackendConnection(true);
             } else {
@@ -521,51 +512,119 @@
             }
 
             updateConnectionButton(button, emoji, text, bgColor, expand);
+            
+            if (expand) {
+                setTimeout(() => {
+                    button.classList.remove('expanded');
+                    const textSpan = button.querySelector('.connection-status-text');
+                    if (textSpan) textSpan.classList.remove('visible');
+                }, 2000);
+            }
         }
 
         function updateConnectionButton(button, emoji, text, bgColor, expand) {
-            button.innerHTML = emoji;
-            button.style.backgroundColor = bgColor;
+            let textSpan = button.querySelector('.connection-status-text');
+            if (!textSpan) {
+                textSpan = document.createElement('span');
+                textSpan.className = 'connection-status-text';
+                button.appendChild(textSpan);
+            }
+            
+            button.firstChild.textContent = emoji;
+            textSpan.textContent = text;
+            button.style.backgroundColor = expand ? bgColor : 'transparent';
             
             if (expand) {
                 button.classList.add('expanded');
-                const textSpan = document.createElement('span');
-                textSpan.className = 'connection-status-text';
-                textSpan.textContent = text;
-                button.appendChild(textSpan);
-                setTimeout(() => textSpan.classList.add('visible'), 0);
+                textSpan.classList.add('visible');
+            }
+        }
+
+        function toggleInfoButton() {
+            const button = document.getElementById('infoButton');
+            const isExpanded = button.classList.contains('expanded');
+            
+            if (!isExpanded) {
+                button.firstChild.textContent = '🧟';
+                
+                let textSpan = button.querySelector('.info-text');
+                if (!textSpan) {
+                    textSpan = document.createElement('span');
+                    textSpan.className = 'info-text';
+                    textSpan.textContent = 'Be aware: Sometimes my creation still makes mistakes.';
+                    button.appendChild(textSpan);
+                }
+                
+                button.classList.add('expanded');
+                textSpan.classList.add('visible');
+                
+                setTimeout(() => {
+                    button.classList.remove('expanded');
+                    textSpan.classList.remove('visible');
+                    button.firstChild.textContent = '⚠️';
+                }, 4000);
+            } else {
+                button.classList.remove('expanded');
+                const textSpan = button.querySelector('.info-text');
+                if (textSpan) textSpan.classList.remove('visible');
+                button.firstChild.textContent = '⚠️';
             }
         }
 
         function openErrorModal() {
             document.getElementById('errorModal').style.display = 'block';
+            document.getElementById('errorDescription').value = '';
+            document.getElementById('successMessage').style.display = 'none';
         }
 
         function closeErrorModal() {
             document.getElementById('errorModal').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-            document.getElementById('errorReport').value = '';
         }
 
-        function submitErrorReport() {
-            const errorReport = document.getElementById('errorReport').value;
-            if (errorReport.trim()) {
-                // Here you would typically send the error report to your backend
-                console.log('Error report submitted:', errorReport);
-                document.getElementById('successMessage').style.display = 'block';
-                setTimeout(closeErrorModal, 2000);
+        async function submitErrorReport() {
+            const errorDescription = document.getElementById('errorDescription').value;
+            if (!errorDescription.trim()) {
+                alert('Please provide a description of the issue.');
+                return;
+            }
+
+            const chatHistory = document.getElementById('chatHistory');
+            const messages = chatHistory.getElementsByClassName('message');
+            const chatLog = Array.from(messages).map(msg => msg.textContent).join('\n');
+
+            try {
+                const response = await fetch(`${API_URL}/report-error`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://bchans.github.io'
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        userMessage: 'User-reported issue',
+                        errorType: 'User Report',
+                        errorMessage: errorDescription,
+                        chatHistory: chatLog,
+                        additionalInfo: 'Submitted via error report form'
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(() => closeErrorModal(), 2000);
+                } else {
+                    alert('Failed to send error report.');
+                }
+            } catch {
+                alert('Failed to send error report.');
             }
         }
-
-        // Add event listener for Enter key in input field
-        document.getElementById('userInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Initial connection check
-        checkBackendConnection();
+// Listen for "Enter" key to send message
+userInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter' && !userInput.disabled) {
+        sendMessage();
+    }
+});
     </script>
 </body>
 </html>
