@@ -346,28 +346,45 @@
             
             document.getElementById('chatHistory').appendChild(messageDiv);
 
-            // Add humorous message after 2 seconds if still connecting
-            setTimeout(() => {
+            const funnyMessages = [
+                "Still trying to wake up the backend... Must've had a late night! 😴",
+                "Backend is doing its morning stretches... 🧘‍♂️",
+                "Poking the server with a stick... 🥄",
+                "Teaching hamsters to run faster on their wheels... 🐹",
+                "Telling the backend that coffee break is over... ☕",
+                "Trying to find backend in its blanket fort... 🏰",
+                "Backend is practicing its slow-motion running... 🏃‍♂️",
+                "Waiting for backend to finish its dramatic entrance... 🎭",
+                "Backend is taking the scenic route today... 🚶‍♂️",
+                "Backend says 'just 5 more minutes, mom!'... 🛏️"
+            ];
+            
+            let messageIndex = 0;
+            let messageInterval;
+
+            // Add first humorous message after 2 seconds
+            const initialMessageTimeout = setTimeout(() => {
                 if (userInput.disabled) {  // If still connecting
-                    const funnyMessages = [
-                        "Still trying to wake up the backend... Must've had a late night! 😴",
-                        "Backend is doing its morning stretches... 🧘‍♂️",
-                        "Poking the server with a stick... 🥄",
-                        "Teaching hamsters to run faster on their wheels... 🐹",
-                        "Telling the backend that coffee break is over... ☕",
-                        "Trying to find backend in its blanket fort... 🏰",
-                        "Backend is practicing its slow-motion running... 🏃‍♂️",
-                        "Waiting for backend to finish its dramatic entrance... 🎭",
-                        "Backend is taking the scenic route today... 🚶‍♂️",
-                        "Backend says 'just 5 more minutes, mom!'... 🛏️"
-                    ];
-                    const randomMessage = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
-                    contentDiv.innerHTML = `<strong>System: </strong>${randomMessage}`;
+                    contentDiv.innerHTML = `<strong>System: </strong>${funnyMessages[0]}`;
+                    
+                    // Start rotating messages every 3 seconds
+                    messageInterval = setInterval(() => {
+                        if (userInput.disabled) {  // Only continue if still connecting
+                            messageIndex = (messageIndex + 1) % funnyMessages.length;
+                            contentDiv.innerHTML = `<strong>System: </strong>${funnyMessages[messageIndex]}`;
+                        } else {
+                            clearInterval(messageInterval);
+                        }
+                    }, 3000);
                 }
             }, 2000);
             
             // Check backend connection
             const isConnected = await checkBackendConnection(false);
+            
+            // Clear timeouts and intervals
+            clearTimeout(initialMessageTimeout);
+            clearInterval(messageInterval);
             
             // Remove the connection message
             document.getElementById('connection-message')?.remove();
@@ -401,7 +418,7 @@
             senderSpan.textContent = `${sender}: `;
             contentDiv.appendChild(senderSpan);
 
-            const messageSpan = document.createElement('span');
+           const messageSpan = document.createElement('span');
             contentDiv.appendChild(messageSpan);
 
             messageDiv.appendChild(iconDiv);
@@ -565,14 +582,6 @@
                 bgColor = '#742a2a';
                 updateConnectionButton(button, emoji, text, bgColor, expand);
                 return false;
-            }
-            
-            if (expand) {
-                setTimeout(() => {
-                    button.classList.remove('expanded');
-                    const textSpan = button.querySelector('.connection-status-text');
-                    if (textSpan) textSpan.classList.remove('visible');
-                }, 2000);
             }
         }
 
