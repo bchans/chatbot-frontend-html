@@ -272,39 +272,9 @@
             font-style: italic;
             animation: pulse 1.5s infinite;
         }
-        .connection-banner {
-            background-color: #2d3748;
-            color: #a0aec0;
-            padding: 10px;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            animation: pulse 1.5s infinite;
-        }
-        .connection-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(160, 174, 192, 0.3);
-            border-radius: 50%;
-            border-top-color: #a0aec0;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
-    <div id="connectionBanner" class="connection-banner" style="display: none;">
-        <div class="connection-spinner"></div>
-        <span>Connecting to backend service...</span>
-    </div>
-    
     <div class="chat-container">
         <h2>Benedict's CV Assistant</h2>
         
@@ -319,9 +289,6 @@
             <button onclick="toggleConnectionStatus()" class="connection-status-button" id="connectionButton">🔄</button>
         </div>
     </div>
-
-    <!-- Job Posting Component Container -->
-    <div id="jobPostingContainer"></div>
 
     <!-- Error Reporting Modal -->
     <div id="errorModal" class="error-modal">
@@ -356,67 +323,55 @@
             }
         }
 
-        async function loadJobPostingComponent() {
-            try {
-                const response = await fetch('jobPosting.html');
-                if (!response.ok) throw new Error("Failed to load jobPosting.html");
-
-                const jobPostingHtml = await response.text();
-                document.getElementById('jobPostingContainer').innerHTML = jobPostingHtml;
-            } catch (error) {
-                console.error("Error loading jobPosting.html:", error);
-            }
-        }
-
-        async function handleUrlInput() {
-            const jobUrl = document.getElementById("jobPostingUrl").value.trim();
-            if (jobUrl) {
-                document.getElementById("loadingAnimation").style.display = "block";
-                document.getElementById("jobTitleDisplay").style.display = "none";
-                await fetchJobTitle(jobUrl);
-            }
-        }
-
-        async function fetchJobTitle(url) {
-            try {
-                const response = await fetch(`${API_URL}/extract-job-title`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ job_url: url })
-                });
-
-                if (!response.ok) throw new Error(`Failed to fetch job title: ${response.statusText}`);
-
-                const data = await response.json();
-                const { job_title, message } = data;
-
-                document.getElementById("loadingAnimation").style.display = "none";
-                document.getElementById("jobTitle").textContent = job_title;
-                document.getElementById("jobTitleMessage").textContent = job_title;
-                document.getElementById("jobTitleDisplay").style.display = "block";
-            } catch (error) {
-                console.error("Error fetching job title:", error);
-                document.getElementById("loadingAnimation").textContent = "Error loading job title.";
-            }
-        }
-
         window.onload = async function() {
-            // Show connection banner
-            document.getElementById('connectionBanner').style.display = 'flex';
-            
             // Disable input until connection is established
             userInput.disabled = true;
             sendButton.disabled = true;
             
-            await loadJobPostingComponent();
+            // Add animated connecting message to chat
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system-message loading';
+            messageDiv.id = 'connection-message';
+            
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'message-icon';
+            iconDiv.textContent = '🔄';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = '<strong>System: </strong>Connecting to backend service...';
+            
+            messageDiv.appendChild(iconDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            document.getElementById('chatHistory').appendChild(messageDiv);
+
+            // Add humorous message after 2 seconds if still connecting
+            setTimeout(() => {
+                if (userInput.disabled) {  // If still connecting
+                    const funnyMessages = [
+                        "Still trying to wake up the backend... Must've had a late night! 😴",
+                        "Backend is doing its morning stretches... 🧘‍♂️",
+                        "Poking the server with a stick... 🥄",
+                        "Teaching hamsters to run faster on their wheels... 🐹",
+                        "Telling the backend that coffee break is over... ☕",
+                        "Trying to find backend in its blanket fort... 🏰",
+                        "Backend is practicing its slow-motion running... 🏃‍♂️",
+                        "Waiting for backend to finish its dramatic entrance... 🎭",
+                        "Backend is taking the scenic route today... 🚶‍♂️",
+                        "Backend says 'just 5 more minutes, mom!'... 🛏️"
+                    ];
+                    const randomMessage = funnyMessages[Math.floor(Math.random() * funnyMessages.length)];
+                    contentDiv.innerHTML = `<strong>System: </strong>${randomMessage}`;
+                }
+            }, 2000);
             
             // Check backend connection
             const isConnected = await checkBackendConnection(false);
             
-            // Hide connection banner
-            document.getElementById('connectionBanner').style.display = 'none';
+            // Remove the connection message
+            document.getElementById('connection-message')?.remove();
             
-            // Enable input if connection is successful
             if (isConnected) {
                 userInput.disabled = false;
                 sendButton.disabled = false;
